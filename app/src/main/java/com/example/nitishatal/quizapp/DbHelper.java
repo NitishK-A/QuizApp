@@ -139,61 +139,7 @@ public class DbHelper extends SQLiteOpenHelper {
         Cursor data = db.rawQuery(query, null);
         return data;
     }
-    public void exportDB() throws IOException {
 
-        SQLiteDatabase sqldb = this.getReadableDatabase(); //My Database class
-        Cursor c = null;
-
-        c = sqldb.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-        int rowcount = 0;
-        int colcount = 0;
-        File sdCardDir = Environment.getExternalStorageDirectory();
-        if (!sdCardDir.exists())
-        {
-            sdCardDir.mkdirs();
-        }
-        String filename = "MyBackUp.csv";
-
-        // the name of the file to export with
-        File saveFile = new File(sdCardDir, filename);
-        FileWriter fw = new FileWriter(saveFile);
-
-
-        BufferedWriter bw = new BufferedWriter(fw);
-        rowcount = c.getCount();
-        colcount = c.getColumnCount();
-        if (rowcount > 0) {
-            c.moveToFirst();
-
-            for (int i = 0; i < colcount; i++) {
-                if (i != colcount - 1) {
-
-                    bw.write(c.getColumnName(i) + ",");
-
-                } else {
-
-                    bw.write(c.getColumnName(i));
-
-                }
-            }
-            bw.newLine();
-
-            for (int i = 0; i < rowcount; i++) {
-                c.moveToPosition(i);
-
-                for (int j = 0; j < colcount; j++) {
-                    if (j != colcount - 1)
-                        bw.write(c.getString(j) + ",");
-                    else
-                        bw.write(c.getString(j));
-                }
-                bw.newLine();
-            }
-            bw.flush();
-
-        }
-
-    }
 
     public  void export(FileOutputStream out){
         SQLiteDatabase db = this.getReadableDatabase(); //My Database class

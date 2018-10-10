@@ -32,6 +32,7 @@ import java.net.URL;
 public class QuizDetail extends AppCompatActivity {
     DbHelper mDatabaseHelper;
     String url;
+    private int serverResponseCode = 0;
 
 
     @Override
@@ -177,8 +178,8 @@ public class QuizDetail extends AppCompatActivity {
                 }
 
                 myClickHandler();
-                new BackgroundUploader("http://192.168.60.54",new File("/data/data/com.example.nitishatal.quizapp/files/data.csv")).execute();
-
+                //new BackgroundUploader("http://192.168.60.54",new File("/data/data/com.example.nitishatal.quizapp/files/data.csv")).execute();
+                new UploadFileAsync().execute("");
 
             }
         });
@@ -232,7 +233,170 @@ public class QuizDetail extends AppCompatActivity {
       //  return false;
     }
 
-        public class BackgroundUploader extends AsyncTask<Void, Integer, String> {
+    //new UploadFileAsync().execute("");
+
+
+
+    private class UploadFileAsync extends AsyncTask<String, Void, String> {
+        private ProgressDialog progressDialog;
+
+        @Override
+        protected void onPreExecute() {
+            progressDialog = new ProgressDialog(QuizDetail.this);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progressDialog.setMessage("Uploading...");
+            // progressDialog.setCancelable(false);
+
+            //   progressDialog.setMax((int) file.length());
+            progressDialog.setMax(100);
+//            progressDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            try {
+                String sourceFileUri = "/data/data/com.example.nitishatal.quizapp/files/data.csv";
+
+                HttpURLConnection conn = null;
+                DataOutputStream dos = null;
+                String lineEnd = "\r\n";
+                String twoHyphens = "--";
+                String boundary = "*****";
+                int bytesRead, bytesAvailable, bufferSize;
+                byte[] buffer;
+                int maxBufferSize = 1 * 1024 * 1024;
+                File sourceFile = new File(sourceFileUri);
+
+                if (sourceFile.isFile()) {
+
+                    try {
+                        String upLoadServerUri = "http://192.168.60.54";
+
+                        // open a URL connection to the Servlet
+                        FileInputStream fileInputStream = new FileInputStream(
+                                sourceFile);
+                        URL url = new URL(upLoadServerUri);
+
+                        // Open a HTTP connection to the URL
+                        conn = (HttpURLConnection) url.openConnection();
+                        conn.setDoInput(true); // Allow Inputs
+                        conn.setDoOutput(true); // Allow Outputs
+                        conn.setUseCaches(false); // Don't use a Cached Copy
+                        conn.setRequestMethod("POST");
+                        conn.setRequestProperty("Connection", "Keep-Alive");
+                        conn.setRequestProperty("ENCTYPE",
+                                "multipart/form-data");
+                        conn.setRequestProperty("Content-Type",
+                                "multipart/form-data;boundary=" + boundary);
+                        conn.setRequestProperty("bill", sourceFileUri);
+
+                        dos = new DataOutputStream(conn.getOutputStream());
+
+                        dos.writeBytes(twoHyphens + boundary + lineEnd);
+                        dos.writeBytes("Content-Disposition: form-data; name=\"bill\";filename=\""
+                                + sourceFileUri + "\"" + lineEnd);
+
+                        dos.writeBytes(lineEnd);
+
+                        // create a buffer of maximum size
+                        bytesAvailable = fileInputStream.available();
+
+                        bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                        buffer = new byte[bufferSize];
+
+                        // read file and write it into form...
+                        bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+                        int progress = 0;
+
+                        //  publishProgress(progress);
+                       // int bytesRead = 0;
+
+                        while (bytesRead > 0) {
+
+                            dos.write(buffer, 0, bufferSize);
+                            bytesAvailable = fileInputStream.available();
+                            bufferSize = Math
+                                    .min(bytesAvailable, maxBufferSize);
+                            bytesRead = fileInputStream.read(buffer, 0,
+                                    bufferSize);
+                            progress += bytesRead;
+                            // update progress bar
+                            publishProgress((int) ((progress * 100) / (sourceFile.length())));
+
+                        }
+
+                        // send multipart form data necesssary after file
+                        // data...
+                        dos.writeBytes(lineEnd);
+                        dos.writeBytes(twoHyphens + boundary + twoHyphens
+                                + lineEnd);
+
+//                         Responses from the server (code and message)
+                        int serverResponseCode = conn.getResponseCode();
+                        String serverResponseMessage = conn
+                                .getResponseMessage();
+
+                        if (serverResponseCode == 200) {
+
+                            // messageText.setText(msg);
+                            //Toast.makeText(ctx, "File Upload Complete.",
+                            //      Toast.LENGTH_SHORT).show();
+
+                            // recursiveDelete(mDirectory1);
+
+                        }
+
+                        // close the streams //
+                        fileInputStream.close();
+                        dos.flush();
+                        dos.close();
+
+                    } catch (Exception e) {
+
+                        // dialog.dismiss();
+                        e.printStackTrace();
+
+                    }
+                    // dialog.dismiss();
+
+                } // End else block
+
+
+            } catch (Exception ex) {
+                // dialog.dismiss();
+
+                ex.printStackTrace();
+            }
+            return "Executed";
+        }
+
+        private void publishProgress(int i) {
+
+        }
+
+        //@Override
+        protected void onProgressUpdate(Integer... progress) {
+            progressDialog.setProgress( (progress[0]));
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (progressDialog.isShowing()) {
+                progressDialog.dismiss();
+            }
+
+        }
+
+        /*@Override
+        protected void onPreExecute() {
+        }*/
+
+
+    }
+
+       /* public class BackgroundUploader extends AsyncTask<Void, Integer, String> {
 
         private ProgressDialog progressDialog;
         private String url;
@@ -252,7 +416,7 @@ public class QuizDetail extends AppCompatActivity {
 
             //   progressDialog.setMax((int) file.length());
             progressDialog.setMax(100);
-            progressDialog.show();
+//            progressDialog.show();
         }
 
         @Override
@@ -262,19 +426,19 @@ public class QuizDetail extends AppCompatActivity {
             HttpURLConnection connection = null;
             String fileName = file.getName();
             //String fileName = "";
-            if (file.getName().toLowerCase().endsWith(".csv")) {
+            *//*if (file.getName().toLowerCase().endsWith(".csv")) {
                 fileName = System.currentTimeMillis() + ".csv";
             } else if (file.getName().toLowerCase().endsWith(".png")) {
                 fileName = System.currentTimeMillis() + ".png";
             } else if (file.getName().toLowerCase().endsWith(".bmp")) {
                 fileName = System.currentTimeMillis() + ".bmp";
-            }
+            }*//*
             try {
                 connection = (HttpURLConnection) new URL(url).openConnection();
                 connection.setRequestMethod("POST");
                 String boundary = "---------------------------boundary";
                 String tail = "\r\n--" + boundary + "--\r\n";
-                connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+                connection.setRequestProperty("bill", "multipart/form-data; boundary=" + boundary);
                 connection.setDoOutput(true);
 
                 String metadataPart = "--" + boundary + "\r\n"
@@ -345,7 +509,7 @@ public class QuizDetail extends AppCompatActivity {
                 progressDialog.dismiss();
             }
         }
-    }
+    }*/
     //public  void AddQ(String g){
       //  mDatabaseHelper.addData(g);
     //}
