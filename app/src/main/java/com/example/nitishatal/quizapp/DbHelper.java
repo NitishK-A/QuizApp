@@ -14,16 +14,14 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 
-/**
- * Created by User on 2/28/2017.
- */
+
 
 public class DbHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "DatabaseHelper";
     private static final String DATABASE_NAME = "myDatabase";    // Database Name
 
-    private static final String TABLE_NAME = "people_table";
+    private static final String TABLE_NAME = "Question_table";
     private static final String COL1 = "ID";
     private static final String COL2 = "name";
     private static final String COL3 = "answer";
@@ -81,10 +79,6 @@ public class DbHelper extends SQLiteOpenHelper {
         }*/
     }
 
-    /**
-     * Returns all the data from database
-     * @return
-     */
     public String getData(){
 
         SQLiteDatabase db = this.getWritableDatabase();
@@ -106,50 +100,27 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
 
-    public int UpdateAns(String id , String newans)
-    {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(COL3,newans);
-        //String[] whereArgs= {oldans};
-        String[] whereId={id};
-        int count =db.update(TABLE_NAME,contentValues, COL1+" = ?",whereId );
-        return count;
-    }
-    public void Update(int id , String newans, String oldans)
+
+    public void Update(int id , String newans)
     {
         SQLiteDatabase db = this.getWritableDatabase();
 
         String query = "UPDATE " + TABLE_NAME + " SET " + COL3 +
-                " = '" + newans + "' WHERE " + COL1 + " = '" + id + "'" +
-                " AND " + COL3 + " = '" + oldans + "'";
+                " = '" + newans + "' WHERE " + COL1 + " = '" + id + "'" ;
         db.execSQL(query);
 
     }
 
-    /**
-     * Returns only the ID that matches the name passed in
-     * @param name
-     * @return
-     */
-    public Cursor getItemID(String name){
-        SQLiteDatabase db = this.getWritableDatabase();
-        String query = "SELECT " + COL1 + " FROM " + TABLE_NAME +
-                " WHERE " + COL2 + " = '" + name + "'";
-        Cursor data = db.rawQuery(query, null);
-        return data;
-    }
 
 
     public  void export(FileOutputStream out){
         SQLiteDatabase db = this.getReadableDatabase(); //My Database class
-        String Filename="data.csv";
         Cursor cursor=db.query(TABLE_NAME,null,null,null,null,null,null);
         for(int i=0;i<30;i++){
             cursor.moveToPosition(i);
-            String question=cursor.getString(cursor.getColumnIndex(COL2));
-            String torf=cursor.getString(cursor.getColumnIndex(COL3));
-            String data=question+" ,"+torf+"\n";
+            String Q=cursor.getString(cursor.getColumnIndex(COL2));
+            String answr=cursor.getString(cursor.getColumnIndex(COL3));
+            String data=Q+" ,"+answr+"\n";
             try {
                 out.write(data.getBytes());
             } catch (IOException e) {
@@ -160,23 +131,7 @@ public class DbHelper extends SQLiteOpenHelper {
         }
 
     }
-    public void databasexport(FileOutputStream out) throws IOException {
 
-        SQLiteDatabase db = this.getWritableDatabase();
-        String Filename="data.csv";
-        String[] columns={COL1,COL2,COL3};
-        Cursor cursor=db.query(TABLE_NAME,columns,null,null,null,null,null,null);
-        StringBuffer buffer=new StringBuffer();
-        while (cursor.moveToNext()){
-            int cid =cursor.getInt(cursor.getColumnIndex(COL1));
-            String name =cursor.getString(cursor.getColumnIndex(COL2));
-            String  password =cursor.getString(cursor.getColumnIndex(COL3));
-            buffer.append(cid+ " ,  " + name + "  , " + password +" \n");
-            String fin=buffer.toString();
-            out.write(fin.getBytes());
-        }
-
-    }
 
 
 
