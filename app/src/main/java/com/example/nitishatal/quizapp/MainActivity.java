@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<City> initCities(){
         ArrayList<City> list=new ArrayList<>();
 
-        for(int i=1;i<=30;i++){
+        for(int i=1;i<=31;i++){
             list.add(new City("Question"+i));
         }
         return list;

@@ -94,7 +94,7 @@ public class QuizDetail extends AppCompatActivity {
                 if(checkedId == R.id.t) {
                     Toast.makeText(getApplicationContext(), "True", Toast.LENGTH_SHORT).show();
                     //mDatabaseHelper.UpdateAns(strid,"true");
-                    mDatabaseHelper.Update(id,"true","null");
+                   // mDatabaseHelper.Update(id,"true");
                     answr[0] ="true";
                 } else if(checkedId == R.id.f) {
                     Toast.makeText(getApplicationContext(), "False", Toast.LENGTH_SHORT).show();
@@ -113,26 +113,8 @@ public class QuizDetail extends AppCompatActivity {
         Save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               // Cursor data = mDatabaseHelper.retrieve();
-                //String a=data.getString(0);
-                /*try {
-                    mDatabaseHelper.exportDB();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
-                mDatabaseHelper.Update(id,answr[0],"null");
-                //String data=mDatabaseHelper.getData();
-                //Toast.makeText(getApplicationContext(), data, Toast.LENGTH_SHORT).show();
 
-                /*String Filename="data.csv";
-                try {
-                    FileOutputStream out=openFileOutput(Filename, Context.MODE_PRIVATE);
-                    mDatabaseHelper.export(out);
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
-
+                mDatabaseHelper.Update(id,answr[0]);
 
             }
         });
@@ -154,20 +136,7 @@ public class QuizDetail extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                /*String Filename="data.csv";
-                try {
-                    FileOutputStream out = openFileOutput(Filename, Context.MODE_PRIVATE);
-                    try {
-                        mDatabaseHelper.databasexport(out);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
-
-                String Filename="data.csv";
+                String Filename="QuizQnA.csv";
                 File file = new File(getApplicationContext().getFilesDir(), Filename);
                 try {
                     FileOutputStream out=openFileOutput(Filename, Context.MODE_PRIVATE);
@@ -178,20 +147,11 @@ public class QuizDetail extends AppCompatActivity {
                 }
 
                 myClickHandler();
-                //new BackgroundUploader("http://192.168.60.54",new File("/data/data/com.example.nitishatal.quizapp/files/data.csv")).execute();
-                new UploadFileAsync().execute("");
+
+                new Async().execute("");
 
             }
         });
-
-
-
-
-
-
-
-
-
 
 
 
@@ -233,283 +193,111 @@ public class QuizDetail extends AppCompatActivity {
       //  return false;
     }
 
-    //new UploadFileAsync().execute("");
 
 
-
-    private class UploadFileAsync extends AsyncTask<String, Void, String> {
+    private class Async extends AsyncTask<String, Integer, String> {
         private ProgressDialog progressDialog;
 
         @Override
         protected void onPreExecute() {
             progressDialog = new ProgressDialog(QuizDetail.this);
             progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            progressDialog.setMessage("Uploading...");
-            // progressDialog.setCancelable(false);
-
-            //   progressDialog.setMax((int) file.length());
+            progressDialog.setMessage("Uploading");
             progressDialog.setMax(100);
-//            progressDialog.show();
+            progressDialog.show();
         }
 
         @Override
-        protected String doInBackground(String... params) {
+        protected String doInBackground(String... result) {
 
             try {
-                String sourceFileUri = "/data/data/com.example.nitishatal.quizapp/files/data.csv";
+                String sourceFile = "/data/data/com.example.nitishatal.quizapp/files/QuizQnA.csv";
 
-                HttpURLConnection conn = null;
-                DataOutputStream dos = null;
                 String lineEnd = "\r\n";
                 String twoHyphens = "--";
                 String boundary = "*****";
-                int bytesRead, bytesAvailable, bufferSize;
-                byte[] buffer;
-                int maxBufferSize = 1 * 1024 * 1024;
-                File sourceFile = new File(sourceFileUri);
+                File csvFile = new File(sourceFile);
 
-                if (sourceFile.isFile()) {
+                String upLoadServerUri = "http://192.168.0.104";
 
-                    try {
-                        String upLoadServerUri = "http://192.168.60.54";
-
-                        // open a URL connection to the Servlet
-                        FileInputStream fileInputStream = new FileInputStream(
-                                sourceFile);
-                        URL url = new URL(upLoadServerUri);
+                FileInputStream fileInputStream = new FileInputStream(sourceFile);
+                URL url = new URL(upLoadServerUri);
 
                         // Open a HTTP connection to the URL
-                        conn = (HttpURLConnection) url.openConnection();
-                        conn.setDoInput(true); // Allow Inputs
-                        conn.setDoOutput(true); // Allow Outputs
-                        conn.setUseCaches(false); // Don't use a Cached Copy
-                        conn.setRequestMethod("POST");
-                        conn.setRequestProperty("Connection", "Keep-Alive");
-                        conn.setRequestProperty("ENCTYPE",
-                                "multipart/form-data");
-                        conn.setRequestProperty("Content-Type",
-                                "multipart/form-data;boundary=" + boundary);
-                        conn.setRequestProperty("bill", sourceFileUri);
+                HttpURLConnection net = (HttpURLConnection) url.openConnection();
+                net.setDoInput(true);
+                net.setDoOutput(true);
+                //net.setUseCaches(false);
+                net.setRequestMethod("POST");
+                net.setRequestProperty("Connection", "Keep-Alive");
+                net.setRequestProperty("ENCTYPE", "multipart/form-data");
+                net.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+                net.setRequestProperty("bill", sourceFile);
 
-                        dos = new DataOutputStream(conn.getOutputStream());
+                DataOutputStream dataos = new DataOutputStream(net.getOutputStream());
 
-                        dos.writeBytes(twoHyphens + boundary + lineEnd);
-                        dos.writeBytes("Content-Disposition: form-data; name=\"bill\";filename=\""
-                                + sourceFileUri + "\"" + lineEnd);
+                dataos.writeBytes(twoHyphens + boundary + lineEnd);
+                dataos.writeBytes("Content-Disposition: form-data; name=\"bill\";filename=\"" + sourceFile + "\"" + lineEnd);
+                dataos.writeBytes(lineEnd);
+                int bytesAvailable = fileInputStream.available();
 
-                        dos.writeBytes(lineEnd);
+                int bufferSize = Math.min(bytesAvailable, 10);//buffer size is 10
+                byte[] buffer = new byte[bufferSize];
 
-                        // create a buffer of maximum size
-                        bytesAvailable = fileInputStream.available();
+                int bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                int progress = 0;
 
-                        bufferSize = Math.min(bytesAvailable, maxBufferSize);
-                        buffer = new byte[bufferSize];
+                while (bytesRead > 0) {
+                    dataos.write(buffer, 0, bufferSize);
+                    bytesAvailable = fileInputStream.available();
+                    bufferSize = Math.min(bytesAvailable, 10);
+                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                    // System.out.println(progress);
+                    Log.d("das","progress"+progress);
+                    progress += 1;
+                    publishProgress((int) ((progress * 100) / (sourceFile.length())));
+                    publishProgress(progress);
+                }
 
-                        // read file and write it into form...
-                        bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                dataos.writeBytes(lineEnd);
+                dataos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
 
-                        int progress = 0;
-
-                        //  publishProgress(progress);
-                       // int bytesRead = 0;
-
-                        while (bytesRead > 0) {
-
-                            dos.write(buffer, 0, bufferSize);
-                            bytesAvailable = fileInputStream.available();
-                            bufferSize = Math
-                                    .min(bytesAvailable, maxBufferSize);
-                            bytesRead = fileInputStream.read(buffer, 0,
-                                    bufferSize);
-                            progress += bytesRead;
-                            // update progress bar
-                            publishProgress((int) ((progress * 100) / (sourceFile.length())));
-
-                        }
-
-                        // send multipart form data necesssary after file
-                        // data...
-                        dos.writeBytes(lineEnd);
-                        dos.writeBytes(twoHyphens + boundary + twoHyphens
-                                + lineEnd);
-
-//                         Responses from the server (code and message)
-                        int serverResponseCode = conn.getResponseCode();
-                        String serverResponseMessage = conn
-                                .getResponseMessage();
-
-                        if (serverResponseCode == 200) {
-
-                            // messageText.setText(msg);
-                            //Toast.makeText(ctx, "File Upload Complete.",
-                            //      Toast.LENGTH_SHORT).show();
-
-                            // recursiveDelete(mDirectory1);
-
-                        }
-
-                        // close the streams //
-                        fileInputStream.close();
-                        dos.flush();
-                        dos.close();
-
-                    } catch (Exception e) {
-
-                        // dialog.dismiss();
-                        e.printStackTrace();
-
-                    }
-                    // dialog.dismiss();
-
-                } // End else block
-
+                // Responses from the server (code and message)
+                serverResponseCode = net.getResponseCode();
+                //      String serverResponseMessage = net.getResponseMessage();
+                if (serverResponseCode == 200) {
+                }
+                fileInputStream.close();
+                dataos.flush();
+                dataos.close();
+                //} catch (Exception e) {
+                //  e.printStackTrace();
+                //}
 
             } catch (Exception ex) {
-                // dialog.dismiss();
-
                 ex.printStackTrace();
             }
-            return "Executed";
+            return "Done";
         }
 
-        private void publishProgress(int i) {
-
-        }
-
-        //@Override
+        @Override
         protected void onProgressUpdate(Integer... progress) {
-            progressDialog.setProgress( (progress[0]));
+            progressDialog.setProgress((progress[0]));
         }
 
         @Override
         protected void onPostExecute(String result) {
             if (progressDialog.isShowing()) {
                 progressDialog.dismiss();
+                Toast.makeText(getApplicationContext(), "Uploaded", Toast.LENGTH_SHORT).show();
             }
 
+
+
         }
-
-        /*@Override
-        protected void onPreExecute() {
-        }*/
-
-
     }
 
-       /* public class BackgroundUploader extends AsyncTask<Void, Integer, String> {
 
-        private ProgressDialog progressDialog;
-        private String url;
-        private File file;
-
-
-        public BackgroundUploader(String url, File file) {
-            this.url = url;
-            this.file = file;
-        }
-        @Override
-        protected void onPreExecute() {
-            progressDialog = new ProgressDialog(QuizDetail.this);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            progressDialog.setMessage("Uploading...");
-            // progressDialog.setCancelable(false);
-
-            //   progressDialog.setMax((int) file.length());
-            progressDialog.setMax(100);
-//            progressDialog.show();
-        }
-
-        @Override
-        protected String doInBackground(Void... v) {
-            String res = "fail";
-            HttpURLConnection.setFollowRedirects(false);
-            HttpURLConnection connection = null;
-            String fileName = file.getName();
-            //String fileName = "";
-            *//*if (file.getName().toLowerCase().endsWith(".csv")) {
-                fileName = System.currentTimeMillis() + ".csv";
-            } else if (file.getName().toLowerCase().endsWith(".png")) {
-                fileName = System.currentTimeMillis() + ".png";
-            } else if (file.getName().toLowerCase().endsWith(".bmp")) {
-                fileName = System.currentTimeMillis() + ".bmp";
-            }*//*
-            try {
-                connection = (HttpURLConnection) new URL(url).openConnection();
-                connection.setRequestMethod("POST");
-                String boundary = "---------------------------boundary";
-                String tail = "\r\n--" + boundary + "--\r\n";
-                connection.setRequestProperty("bill", "multipart/form-data; boundary=" + boundary);
-                connection.setDoOutput(true);
-
-                String metadataPart = "--" + boundary + "\r\n"
-                        + "Content-Disposition: form-data; name=\"metadata\"\r\n\r\n"
-                        + "" + "\r\n";
-
-                String fileHeader1 = "--" + boundary + "\r\n"
-                        + "Content-Disposition: form-data; name=\"uploaded_file\"; filename=\""
-                        + fileName + "\"\r\n"
-                        + "Content-Type: application/octet-stream\r\n"
-                        + "Content-Transfer-Encoding: binary\r\n";
-
-                long fileLength = file.length() + tail.length();
-                String fileHeader2 = "Content-length: " + fileLength + "\r\n";
-                String fileHeader = fileHeader1 + fileHeader2 + "\r\n";
-                String stringData = metadataPart + fileHeader;
-
-                long requestLength = stringData.length() + fileLength;
-                connection.setRequestProperty("Content-length", "" + requestLength);
-                connection.setFixedLengthStreamingMode((int) requestLength);
-                connection.connect();
-
-                DataOutputStream out = new DataOutputStream(connection.getOutputStream());
-                out.writeBytes(stringData);
-                out.flush();
-
-                int progress = 0;
-                int bytesRead = 0;
-                byte buf[] = new byte[1024];
-                BufferedInputStream bufInput = new BufferedInputStream(new FileInputStream(file));
-                while ((bytesRead = bufInput.read(buf)) != -1) {
-                    // write output
-                    out.write(buf, 0, bytesRead);
-                    out.flush();
-                    progress += bytesRead;
-                    // update progress bar
-                    publishProgress((int) ((progress * 100) / (file.length())));
-                    //  publishProgress(progress);
-                }
-
-                // Write closing boundary and close stream
-                out.writeBytes(tail);
-                out.flush();
-                out.close();
-                System.out.println(connection.getResponseCode());
-                if (connection.getResponseCode() == 200 || connection.getResponseCode() == 201) {
-                    //Toast.makeText(getApplicationContext(), " Webserver", Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception e) {
-                // Exception
-                e.printStackTrace();
-            } finally {
-                if (connection != null) connection.disconnect();
-            }
-            return res;
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... progress) {
-            progressDialog.setProgress((int) (progress[0]));
-        }
-
-
-
-        @Override
-        protected void onPostExecute(String v) {
-            if (progressDialog.isShowing()) {
-                progressDialog.dismiss();
-            }
-        }
-    }*/
     //public  void AddQ(String g){
       //  mDatabaseHelper.addData(g);
     //}
