@@ -7,6 +7,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,7 +33,7 @@ import java.net.URL;
 
 public class QuizDetail extends AppCompatActivity {
     DbHelper mDatabaseHelper;
-    String url;
+
     private int serverResponseCode = 0;
 
 
@@ -40,6 +42,12 @@ public class QuizDetail extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz_detail);
+
+        /*Frag2 f2=new Frag2();
+        FragmentManager manager=getSupportFragmentManager();
+        FragmentTransaction manager2=manager.beginTransaction();
+        manager2.add(R.id.fragment2,f2);
+        manager2.commit();*/
 
         Intent intent = getIntent();
        // Bundle extras = intent.getExtras();
@@ -213,9 +221,8 @@ public class QuizDetail extends AppCompatActivity {
             try {
                 String sourceFile = "/data/data/com.example.nitishatal.quizapp/files/QuizQnA.csv";
 
-                String lineEnd = "\r\n";
-                String twoHyphens = "--";
-                String boundary = "*****";
+
+
                 File csvFile = new File(sourceFile);
 
                 String upLoadServerUri = "http://192.168.0.104";
@@ -231,14 +238,14 @@ public class QuizDetail extends AppCompatActivity {
                 net.setRequestMethod("POST");
                 net.setRequestProperty("Connection", "Keep-Alive");
                 net.setRequestProperty("ENCTYPE", "multipart/form-data");
-                net.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
-                net.setRequestProperty("bill", sourceFile);
+                net.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + "*****");
+                net.setRequestProperty("nitish", sourceFile);
 
                 DataOutputStream dataos = new DataOutputStream(net.getOutputStream());
 
-                dataos.writeBytes(twoHyphens + boundary + lineEnd);
-                dataos.writeBytes("Content-Disposition: form-data; name=\"bill\";filename=\"" + sourceFile + "\"" + lineEnd);
-                dataos.writeBytes(lineEnd);
+                dataos.writeBytes("--" + "*****" + "\r\n");
+                dataos.writeBytes("Content-Disposition: form-data; name=\"nitish\";filename=\"" + sourceFile + "\"" + "\r\n");
+                dataos.writeBytes("\r\n");
                 int bytesAvailable = fileInputStream.available();
 
                 int bufferSize = Math.min(bytesAvailable, 10);//buffer size is 10
@@ -259,8 +266,8 @@ public class QuizDetail extends AppCompatActivity {
                     publishProgress(progress);
                 }
 
-                dataos.writeBytes(lineEnd);
-                dataos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+                dataos.writeBytes("\r\n");
+                dataos.writeBytes("--" + "*****" + "--" + "\r\n");
 
                 // Responses from the server (code and message)
                 serverResponseCode = net.getResponseCode();

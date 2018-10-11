@@ -118,9 +118,10 @@ public class DbHelper extends SQLiteOpenHelper {
         Cursor cursor=db.query(TABLE_NAME,null,null,null,null,null,null);
         for(int i=0;i<30;i++){
             cursor.moveToPosition(i);
+            int cid =cursor.getInt(cursor.getColumnIndex(COL1));
             String Q=cursor.getString(cursor.getColumnIndex(COL2));
             String answr=cursor.getString(cursor.getColumnIndex(COL3));
-            String data=Q+" ,"+answr+"\n";
+            String data=cid+" ,"+Q+" ,"+answr+"\n";
             try {
                 out.write(data.getBytes());
             } catch (IOException e) {
