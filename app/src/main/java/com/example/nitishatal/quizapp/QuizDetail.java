@@ -248,7 +248,11 @@ public class QuizDetail extends AppCompatActivity {
                 dataos.writeBytes("\r\n");
                 int bytesAvailable = fileInputStream.available();
 
-                int bufferSize = Math.min(bytesAvailable, 10);//buffer size is 10
+                if(bytesAvailable<10){
+                        buffersize=bytesAvailable;
+                    }else{
+                        buffersize=bytesrAvailable;
+                    }//max buffer size is 10
                 byte[] buffer = new byte[bufferSize];
 
                 int bytesRead = fileInputStream.read(buffer, 0, bufferSize);
@@ -257,7 +261,12 @@ public class QuizDetail extends AppCompatActivity {
                 while (bytesRead > 0) {
                     dataos.write(buffer, 0, bufferSize);
                     bytesAvailable = fileInputStream.available();
-                    bufferSize = Math.min(bytesAvailable, 10);
+                    if(bytesAvailable<10){
+                        buffersize=bytesAvailable;
+                    }else{
+                        buffersize=bytesrAvailable;
+                    }
+                    
                     bytesRead = fileInputStream.read(buffer, 0, bufferSize);
                     // System.out.println(progress);
                     Log.d("das","progress"+progress);
